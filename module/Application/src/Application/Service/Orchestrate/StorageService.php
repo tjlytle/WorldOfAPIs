@@ -357,5 +357,7 @@ class StorageService implements StorageInterface
      */
     public function getAddressByPhone($phone)
     {
+        $this->addressCollection->search('value.phone:"' . $phone .'"');
+        return $this->addressCollection[0];
     }
 }
