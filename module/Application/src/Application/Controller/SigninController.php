@@ -59,7 +59,7 @@ class SigninController extends AbstractActionController
             ]);
         }
 
-        //Create a new Stormpath acount
+        //Create a new Stormpath account
         $account = $this->client->dataStore->instantiate(\Stormpath\Stormpath::ACCOUNT);
 
         //Add the details
@@ -87,7 +87,7 @@ class SigninController extends AbstractActionController
     }
 
     /**
-     * Auth a user (leverage Zend's auth serivce)
+     * Auth a user (leverage Zend's auth service)
      * @return \Zend\Http\Response|ViewModel
      */
     public function signinAction()
