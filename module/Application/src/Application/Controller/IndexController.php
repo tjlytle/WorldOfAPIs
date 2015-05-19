@@ -207,11 +207,34 @@ class IndexController extends AbstractActionController
         $id = $this->storageService->addOrder($this->email, $url, $snippet, $this->createForm->get('address')->getValue());
 
         //Get a URL for the render action (shows the code).
+        $uri = $this->getRequest()->getUri();
+        $uri->setPath($this->url()->fromRoute('render'));
+        $uri->setQuery(['url' => $url]);
+        $render = (string) $uri;
 
         //Get a URL for the callback when the render is complete.
+        $uri->setPath($this->url()->fromRoute('render/result', ['id' => $id]));
+        $uri->setQuery([]);
+        $callback = (string) $uri;
 
         //Get an image of the code.
+        $process = $this->cloudconvert->createProcess([
+            "inputformat" => "website",
+            "outputformat" => "png",
+        ]);
 
-        //Redirect to home.
+        $process->start([
+            "outputformat" => "png",
+            "input" => "url",
+            "callback" => $callback,
+            "save" => "true",
+            "file" => $render,
+            "converteroptions" => [
+                "screen_width" => "1875",
+                "screen_height" => "1275"
+            ]
+        ]);
+
+        return $this->redirect()->toRoute('home');
     }
 }

@@ -170,6 +170,47 @@ class StorageService implements StorageInterface
      */
     public function addOrder($email, $url, Snippet $snippet, array $addresses)
     {
+        $user = $this->getUser($email);
+
+        $order = $this->orderCollection->item();
+        $order->url = $url;
+        $order->code = $snippet->getCode();
+        $order->language = $snippet->getLanguage();
+        $order->created = new \DateTime();
+
+        foreach($addresses as $index => $id){
+            $address = $this->addressCollection->item($id);
+            if(!$address->get()){
+                throw new \RuntimeException('could not fetch address');
+            }
+            $addresses[$index] = $address;
+        }
+
+        if(!$order->post()){
+            throw new \RuntimeException('could not persist order');
+        }
+
+        if(!$order->relation('user', $user)->put()){
+            throw new \RuntimeException('could not link order to user');
+        }
+
+        if(!$user->relation('order', $order)->put()){
+            throw new \RuntimeException('could not link user to order');
+        }
+
+        foreach($addresses as $address){
+            if(!$order->relation('address', $address)->put()){
+                throw new \RuntimeException('could not link order to address');
+            }
+
+            if(!$address->relation('order', $order)->put()){
+                throw new \RuntimeException('could not link address to order');
+            }
+        }
+
+        $user->event('activity')->post(['type' => 'new order']);
+
+        return $order->getKey();
     }
 
     /**
