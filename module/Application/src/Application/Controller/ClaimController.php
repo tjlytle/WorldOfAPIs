@@ -48,18 +48,6 @@ class ClaimController extends AbstractActionController
 
         //If a request ID is sent, assume this completes a verification with the code
         if($id = $this->getRequest()->getPost('request')){
-            $response = $this->verify->check([
-                'request_id' => $id,
-                'code' => $this->getRequest()->getPost('pin')
-            ]);
-
-            if($response['status'] !== '0'){
-                return new ViewModel([
-                    'request' => $id,
-                    'number' => $this->getRequest()->getPost('number'),
-                    'error' => 'That code does not match.'
-                ]);
-            }
 
             //Find the address by the number
             $address = $this->storageService->getAddressByPhone($this->getRequest()->getPost('number'));
@@ -75,27 +63,10 @@ class ClaimController extends AbstractActionController
         }
 
         //If there's no request ID, we should send create one
-        $response = $this->verify->verify([
-            'number' => $this->getRequest()->getPost('number'),
-            'brand' => 'Gitgram'
-        ]);
 
         //Based on the API response, add data to the view model.
-        switch($response['status']){
-            case 0:
-                return new ViewModel([
-                    'request' => $response['request_id'],
-                    'number'   => $this->getRequest()->getPost('number')
-                ]);
-            case 15:
-                $error = 'Sorry, that number can not be used as a login.';
-                break;
-            case 10:
-                $error = 'Please wait a few minutes and try again.';
-                break;
-            default:
-                $error = 'Sorry, something went wrong. err: ' . $response['status'];
-        }
+
+        $error = 'Not implemented';
 
         return new ViewModel([
             'error' => $error,
@@ -117,19 +88,9 @@ class ClaimController extends AbstractActionController
 
         //Lookup the address by ID, and get the shipments sent to it
         $address = $this->storageService->getAddress($id);
-        $shipments = $address->relations('shipment');
 
         //Just render if there's no shipments
-        if(!$shipments->get(1, $page -1)){
-            return;
-        }
 
         //Check for paging
-        return new ViewModel([
-            'shipment' => $shipments[0],
-            'next' => $shipments->getNextUrl() ? $page + 1 : false,
-            'prev' => $shipments->getPrevUrl() ? $page - 1 : false,
-
-        ]);
     }
 }

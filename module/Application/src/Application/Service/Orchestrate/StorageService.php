@@ -71,20 +71,6 @@ class StorageService implements StorageInterface
      */
     public function getUser($email)
     {
-        $user = $this->userCollection->item($email);
-
-        if(!$user->get()){
-            $user->email = $email;
-            $user->created = new \DateTime();
-
-            if(!$user->put()){
-                throw new \RuntimeException('could not persist new user');
-            }
-
-            $user->event('activity')->post(['type' => 'created']);
-        }
-
-        return $user;
     }
 
     /**
@@ -95,15 +81,7 @@ class StorageService implements StorageInterface
      */
     public function getAddresses($email)
     {
-        $user = $this->getUser($email);
-
-        $addresses = $user->relations('address');
-
-        if(!$addresses->get()){
-            throw new \RuntimeException('could not fetch addresses');
-        }
-
-        return $addresses;
+        return [];
     }
 
     /**
@@ -120,27 +98,6 @@ class StorageService implements StorageInterface
      */
     public function addAddress($email, $name, $street, $city, $state, $postal, $phone)
     {
-        $user = $this->getUser($email);
-
-        $address = $this->addressCollection->item();
-        $address->name      = $name;
-        $address->street    = $street;
-        $address->city      = $city;
-        $address->state     = $state;
-        $address->postal    = $postal;
-        $address->phone     = $phone;
-
-        if(!$address->post()){
-            throw new \RuntimeException('could not persist address');
-        }
-
-        if(!$user->relation('address', $address)->put()){
-            throw new \RuntimeException('could not link address to user');
-        }
-
-        $user->event('activity')->post(['type' => 'new address']);
-
-        return $address->getKey();
     }
 
     /**
@@ -151,12 +108,6 @@ class StorageService implements StorageInterface
      */
     public function getAddress($id)
     {
-        $item = $this->addressCollection->item($id);
-        if(!$item->get()){
-            throw new \RuntimeException('could not fetch address');
-        }
-
-        return $item;
     }
 
     /**
@@ -170,47 +121,6 @@ class StorageService implements StorageInterface
      */
     public function addOrder($email, $url, Snippet $snippet, array $addresses)
     {
-        $user = $this->getUser($email);
-
-        $order = $this->orderCollection->item();
-        $order->url = $url;
-        $order->code = $snippet->getCode();
-        $order->language = $snippet->getLanguage();
-        $order->created = new \DateTime();
-
-        foreach($addresses as $index => $id){
-            $address = $this->addressCollection->item($id);
-            if(!$address->get()){
-                throw new \RuntimeException('could not fetch address');
-            }
-            $addresses[$index] = $address;
-        }
-
-        if(!$order->post()){
-            throw new \RuntimeException('could not persist order');
-        }
-
-        if(!$order->relation('user', $user)->put()){
-            throw new \RuntimeException('could not link order to user');
-        }
-
-        if(!$user->relation('order', $order)->put()){
-            throw new \RuntimeException('could not link user to order');
-        }
-
-        foreach($addresses as $address){
-            if(!$order->relation('address', $address)->put()){
-                throw new \RuntimeException('could not link order to address');
-            }
-
-            if(!$address->relation('order', $order)->put()){
-                throw new \RuntimeException('could not link address to order');
-            }
-        }
-
-        $user->event('activity')->post(['type' => 'new order']);
-
-        return $order->getKey();
     }
 
     /**
@@ -221,12 +131,6 @@ class StorageService implements StorageInterface
      */
     public function getOrder($id)
     {
-        $order = $this->orderCollection->item($id);
-        if(!$order->get()){
-            throw new \RuntimeException('could not fetch order');
-        }
-
-        return $order;
     }
 
     /**
@@ -237,17 +141,6 @@ class StorageService implements StorageInterface
      */
     public function getOrderUser($order)
     {
-        if(!($order instanceof KeyValueInterface)){
-            $order = $this->getOrder($order);
-        }
-
-        $users = $order->relations('user');
-
-        if(!$users->get(1)){
-            throw new \RuntimeException('could not fetch users');
-        }
-
-        return $users[0];
     }
 
     /**
@@ -258,17 +151,6 @@ class StorageService implements StorageInterface
      */
     public function getOrderAddresses($order)
     {
-        if(!($order instanceof KeyValueInterface)){
-            $order = $this->getOrder($order);
-        }
-
-        $addresses = $order->relations('address');
-
-        if(!$addresses->get()){
-            throw new \RuntimeException('could not fetch addresses');
-        }
-
-        return $addresses;
     }
 
     /**
@@ -283,44 +165,6 @@ class StorageService implements StorageInterface
      */
     public function addShipment($order, $address, $shipId, $front, $back)
     {
-        if(!($order instanceof KeyValueInterface)){
-            $order = $this->getOrder($order);
-        }
-
-        if(!($address instanceof KeyValueInterface)){
-            $address = $this->getAddress($address);
-        }
-
-        $shipment = $this->shipmentCollection->item();
-        $shipment->shipId = $shipId;
-        $shipment->front = $front;
-        $shipment->back = $back;
-        $shipment->created = new \DateTime();
-
-        if(!$shipment->post()){
-            throw new \RuntimeException('could not persist shipment info');
-        }
-
-        if(!$shipment->relation('order', $order)->put()){
-            throw new \RuntimeException('could not link shipment to order');
-        }
-
-        if(!$order->relation('shipment', $shipment)->put()){
-            throw new \RuntimeException('could not link order to shipment');
-        }
-
-        if(!$shipment->relation('address', $address)->put()){
-            throw new \RuntimeException('could not link shipment to address');
-        }
-
-        if(!$address->relation('shipment', $shipment)->put()){
-            throw new \RuntimeException('could not link address to shipment');
-        }
-
-        $user = $this->getOrderUser($order);
-        $user->event('activity')->post(['type' => 'shipped card']);
-
-        return $shipment;
     }
 
     /**
@@ -333,20 +177,6 @@ class StorageService implements StorageInterface
      */
     public function getLastShipment($email)
     {
-        $user = $this->getUser($email);
-        $shipments = $user->relations('order/shipment');
-
-        if(!$shipments->get()){
-            throw new \RuntimeException('could not fetch shipments');
-        }
-
-        $shipment = null;
-
-        do{
-            foreach($shipments as $shipment){}
-        } while ($shipments->nextPage());
-
-        return $shipment;
     }
 
     /**
@@ -357,7 +187,5 @@ class StorageService implements StorageInterface
      */
     public function getAddressByPhone($phone)
     {
-        $this->addressCollection->search('value.phone:"' . $phone .'"');
-        return $this->addressCollection[0];
     }
 }
