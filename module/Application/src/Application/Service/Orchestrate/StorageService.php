@@ -151,6 +151,12 @@ class StorageService implements StorageInterface
      */
     public function getAddress($id)
     {
+        $item = $this->addressCollection->item($id);
+        if(!$item->get()){
+            throw new \RuntimeException('could not fetch address');
+        }
+
+        return $item;
     }
 
     /**
