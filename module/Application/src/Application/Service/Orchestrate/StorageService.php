@@ -221,6 +221,12 @@ class StorageService implements StorageInterface
      */
     public function getOrder($id)
     {
+        $order = $this->orderCollection->item($id);
+        if(!$order->get()){
+            throw new \RuntimeException('could not fetch order');
+        }
+
+        return $order;
     }
 
     /**
@@ -231,6 +237,17 @@ class StorageService implements StorageInterface
      */
     public function getOrderUser($order)
     {
+        if(!($order instanceof KeyValueInterface)){
+            $order = $this->getOrder($order);
+        }
+
+        $users = $order->relations('user');
+
+        if(!$users->get(1)){
+            throw new \RuntimeException('could not fetch users');
+        }
+
+        return $users[0];
     }
 
     /**
@@ -241,6 +258,17 @@ class StorageService implements StorageInterface
      */
     public function getOrderAddresses($order)
     {
+        if(!($order instanceof KeyValueInterface)){
+            $order = $this->getOrder($order);
+        }
+
+        $addresses = $order->relations('address');
+
+        if(!$addresses->get()){
+            throw new \RuntimeException('could not fetch addresses');
+        }
+
+        return $addresses;
     }
 
     /**
@@ -255,6 +283,44 @@ class StorageService implements StorageInterface
      */
     public function addShipment($order, $address, $shipId, $front, $back)
     {
+        if(!($order instanceof KeyValueInterface)){
+            $order = $this->getOrder($order);
+        }
+
+        if(!($address instanceof KeyValueInterface)){
+            $address = $this->getAddress($address);
+        }
+
+        $shipment = $this->shipmentCollection->item();
+        $shipment->shipId = $shipId;
+        $shipment->front = $front;
+        $shipment->back = $back;
+        $shipment->created = new \DateTime();
+
+        if(!$shipment->post()){
+            throw new \RuntimeException('could not persist shipment info');
+        }
+
+        if(!$shipment->relation('order', $order)->put()){
+            throw new \RuntimeException('could not link shipment to order');
+        }
+
+        if(!$order->relation('shipment', $shipment)->put()){
+            throw new \RuntimeException('could not link order to shipment');
+        }
+
+        if(!$shipment->relation('address', $address)->put()){
+            throw new \RuntimeException('could not link shipment to address');
+        }
+
+        if(!$address->relation('shipment', $shipment)->put()){
+            throw new \RuntimeException('could not link address to shipment');
+        }
+
+        $user = $this->getOrderUser($order);
+        $user->event('activity')->post(['type' => 'shipped card']);
+
+        return $shipment;
     }
 
     /**

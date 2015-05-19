@@ -84,7 +84,10 @@ class RenderController extends AbstractActionController
     public function resultAction()
     {
         //Get the render data, including the download URL
-        $image = '';
+        $process = new Process($this->cloudconvert, $this->getRequest()->getQuery('url'));
+        $process->refresh();
+        $output = $process->output;
+        $image = 'https:' . $output->url . '/' . $output->filename;
 
         //Grab the order, and the user.
         $order = $this->storageService->getOrder($this->params('id'));
@@ -116,7 +119,17 @@ class RenderController extends AbstractActionController
                 'address_country' => 'US',
             ];
 
+            $data = $this->lob->postcards()->create($print);
+            $this->storageService->addShipment($order, $address, $data['id'], $data['thumbnails'][0]['medium'], $data['thumbnails'][1]['medium']);
+
             //Send an SMS, so they know something is coming
+            $result = $this->sms->send([
+                'from' => '12404284163',
+                'to' => $address->phone,
+                'text' => "You were just sent a Gitgram. It's in the mail, but you can view it online: " . $this->getRequest()->getUri()->getHost()
+            ]);
+
+            $address->event('sms')->post($result);
         }
 
         //Just give back a 200, so CloudConvert doesn't deliver again.
