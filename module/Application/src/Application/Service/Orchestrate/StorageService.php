@@ -71,6 +71,20 @@ class StorageService implements StorageInterface
      */
     public function getUser($email)
     {
+        $user = $this->userCollection->item($email);
+
+        if(!$user->get()){
+            $user->email = $email;
+            $user->created = new \DateTime();
+
+            if(!$user->put()){
+                throw new \RuntimeException('could not persist new user');
+            }
+
+            $user->event('activity')->post(['type' => 'created']);
+        }
+
+        return $user;
     }
 
     /**
@@ -81,7 +95,15 @@ class StorageService implements StorageInterface
      */
     public function getAddresses($email)
     {
-        return [];
+        $user = $this->getUser($email);
+
+        $addresses = $user->relations('address');
+
+        if(!$addresses->get()){
+            throw new \RuntimeException('could not fetch addresses');
+        }
+
+        return $addresses;
     }
 
     /**
@@ -98,6 +120,27 @@ class StorageService implements StorageInterface
      */
     public function addAddress($email, $name, $street, $city, $state, $postal, $phone)
     {
+        $user = $this->getUser($email);
+
+        $address = $this->addressCollection->item();
+        $address->name      = $name;
+        $address->street    = $street;
+        $address->city      = $city;
+        $address->state     = $state;
+        $address->postal    = $postal;
+        $address->phone     = $phone;
+
+        if(!$address->post()){
+            throw new \RuntimeException('could not persist address');
+        }
+
+        if(!$user->relation('address', $address)->put()){
+            throw new \RuntimeException('could not link address to user');
+        }
+
+        $user->event('activity')->post(['type' => 'new address']);
+
+        return $address->getKey();
     }
 
     /**
