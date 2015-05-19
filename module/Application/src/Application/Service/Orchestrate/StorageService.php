@@ -333,6 +333,20 @@ class StorageService implements StorageInterface
      */
     public function getLastShipment($email)
     {
+        $user = $this->getUser($email);
+        $shipments = $user->relations('order/shipment');
+
+        if(!$shipments->get()){
+            throw new \RuntimeException('could not fetch shipments');
+        }
+
+        $shipment = null;
+
+        do{
+            foreach($shipments as $shipment){}
+        } while ($shipments->nextPage());
+
+        return $shipment;
     }
 
     /**
