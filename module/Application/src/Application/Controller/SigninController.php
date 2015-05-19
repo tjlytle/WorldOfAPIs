@@ -8,6 +8,7 @@ use Stormpath\Client;
 use Stormpath\Resource\Account;
 use Stormpath\Resource\Application;
 use Stormpath\Resource\ResourceError;
+use Stormpath\Stormpath;
 use Zend\Authentication\AuthenticationService;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
@@ -60,14 +61,30 @@ class SigninController extends AbstractActionController
         }
 
         //Create a new Stormpath account
+        $account = $this->client->dataStore->instantiate(\Stormpath\Stormpath::ACCOUNT);
 
         //Add the details
+        $account->givenName = $form->get('first')->getValue();
+        $account->surname   = $form->get('last')->getValue();
+        $account->email     = $form->get('email')->getValue();
+        $account->password  = $form->get('password')->getValue();
 
         //Some Custom Data
+        $account->customData->phone = $form->get('phone')->getValue();
 
         //Persist the account
+        try{
+            $result = $this->application->createAccount($account);
+        } catch (ResourceError $e) {
+            //Message is the validation issue
+            return new ViewModel([
+                'form' => $form,
+                'error' => $e->getMessage()
+            ]);
+        }
 
         //New account created, let them signin
+        return $this->redirect()->toRoute('signin');
     }
 
     /**

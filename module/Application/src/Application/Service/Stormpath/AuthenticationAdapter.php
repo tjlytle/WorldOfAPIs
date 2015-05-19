@@ -62,11 +62,13 @@ class AuthenticationAdapter implements AdapterInterface
     {
         try{
             //Stormpath result will contain the account on success
+            $result = $this->application->authenticate($this->user, $this->password);
+            $result = new Result(Result::SUCCESS, $result->account->username);
         } catch (ResourceError $e) {
             //Message will contain the login error
+            $result = new Result(Result::FAILURE, $this->user, [$e->getMessage()]);
         }
 
-        $result = new Result(Result::FAILURE, null);
         return $result;
     }
 }
