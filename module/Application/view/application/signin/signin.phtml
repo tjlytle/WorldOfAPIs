@@ -1,0 +1,23 @@
+<div class="row">
+    <div class="col-xs-12 col-md-8">
+        <h1>Sign In to Gitgram</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12 col-md-8">
+        <?php if($this->error): ?>
+            <?php echo $this->alert($this->error, array('class' => 'alert-danger'));?>
+        <?php endif; ?>
+
+        <?php echo $this->form(null, false)->openTag($this->form);?>
+        <?php foreach($this->form as $element): ?>
+            <?php echo $this->formRow($element); ?>
+        <?php endforeach; ?>
+
+        <button type="submit" class="btn btn-default">Sign In</button>
+        <a class="btn btn-primary" href="<?php echo $this->url('signup') ?>">Or Sign Up</a>
+        (<a href="<?php echo $this->url('claim') ?>">Were you sent a card?</a>)
+        <?php echo $this->form()->closeTag(); ?>
+    </div>
+</div>

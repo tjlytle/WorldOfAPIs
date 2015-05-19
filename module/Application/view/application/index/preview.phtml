@@ -1,0 +1,45 @@
+<div class="jumbotron">
+    <pre><code><?php echo $this->escapeHtml(implode("\n", $this->snippet->getCode())) ?></code></pre>
+    <?php if(!$this->snippet->isOk()): ?>
+        <div class="alert alert-warning"><b>Careful:</b> Looks like your code may be too long to print nicely. <i>Is it really beautiful?</i></div>
+    <?php endif; ?>
+</div>
+
+<div class="row">
+    <div class="col-xs-12 col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Sending To:</h3>
+            </div>
+            <div class="panel-body">
+                <?php foreach($this->addresses as $address): ?>
+                    <address>
+                        <strong><?php echo $this->escapeHtml($address['name']); ?></strong><br/>
+                        <?php echo $this->escapeHtml($address['street']); ?><br/>
+                        <?php echo $this->escapeHtml($address['city']); ?>,
+                        <?php echo $this->escapeHtml($address['state']); ?>
+                        <?php echo $this->escapeHtml($address['postal']); ?>
+                    </address>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xs-12 col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Everything look good?</h3>
+            </div>
+            <div class="panel-body">
+                <?php echo $this->form(null, false)->openTag($this->createForm);?>
+                <div style="display: none;" >
+                    <?php echo $this->formRow($this->createForm->get('link')); ?>
+                    <?php echo $this->formRow($this->createForm->get('address')); ?>
+                </div>
+                <button type="submit" class="btn btn-success">Send</button>
+                <a class="btn btn-default" href="<?php echo $this->url('home') ?>">Cancel</a>
+                <?php echo $this->form()->closeTag(); ?>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,26 @@
+<div class="row">
+    <?php if(!$this->shipment): ?>
+        <div class="alert-info">Could not find any cards. Sorry.</div>
+    <?php else: ?>
+
+    <div class="col-md-4 col-md-offset-2">
+        <img src="<?php echo $this->escapeHtml($this->shipment->front) ?>" class="img-thumbnail" style="margin-bottom: 5px">
+    </div>
+    <div class="col-md-4">
+        <img src="<?php echo $this->escapeHtml($this->shipment->back) ?>" class="img-thumbnail" style="margin-bottom: 15px">
+    </div>
+
+    <div class="col-md-12">
+        <nav>
+            <ul class="pager">
+                <?php if($this->prev): ?>
+                    <li class="previous"><a href="?page=<?php echo $this->escapeHtml($this->prev) ?>">Previous</a></li>
+                <?php endif; ?>
+                <?php if($this->next): ?>
+                    <li class="next"><a href="?page=<?php echo $this->escapeHtml($this->next) ?>">Next</a></li>
+                <?php endif; ?>
+            </ul>
+        </nav>
+    </div>
+    <?php endif; ?>
+</div>

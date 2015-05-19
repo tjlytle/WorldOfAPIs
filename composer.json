@@ -1,0 +1,17 @@
+{
+    "name": "tjlytle/world-of-apis",
+    "description": "The Wonderful World of APIs",
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.3.3",
+        "zendframework/zendframework": "~2.4",
+        "neilime/zf2-twb-bundle": "2.*@stable",
+        "stormpath/sdk": "1.3.*@beta",
+        "andrefelipe/orchestrate-php": "^0.13.2",
+        "cloudconvert/cloudconvert-php": "2.0",
+        "lob/lob-php": "^1.4",
+        "fillup/nexmo": "dev-master",
+        "guzzlehttp/guzzle-services": "0.5.0",
+        "guzzlehttp/command":  "0.7.1"
+    }
+}

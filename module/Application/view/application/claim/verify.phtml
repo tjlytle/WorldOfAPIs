@@ -1,0 +1,26 @@
+<div class="row">
+    <div class="col-md-4 col-md-offset-4">
+        <form class="form-signin" method="post">
+            <h2 class="form-signin-heading">
+                <?php if(!$this->request):?>
+                Sign In With Your Number
+                <?php else: ?>
+                We Just Sent You A Code:
+                <?php endif; ?>
+            </h2>
+            <?php if($this->error): ?>
+            <div class="alert alert-danger"><?php echo $this->escapeHtml($this->error) ?></div>
+            <?php endif; ?>
+            <div class="form-group">
+                <?php if(!$this->request): ?>
+                <input type="tel" name="number" class="form-control" placeholder="1-555-333-1212" required autofocus>
+                <?php else: ?>
+                <input type="hidden" name="request" value="<?php echo $this->escapeHtml($this->request) ?>">
+                <input type="hidden" name="number" value="<?php echo $this->escapeHtml($this->number) ?>">
+                <input type="text" name="pin" class="form-control" placeholder="1234" required autofocus>
+                <?php endif; ?>
+            </div>
+            <button class="btn btn-primary" type="submit">Sign in</button>
+        </form>
+    </div>
+</div>
